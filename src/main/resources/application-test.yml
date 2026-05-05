@@ -1,0 +1,30 @@
+spring:
+    config:
+        activate:
+            on-profile: test
+
+    devtools:
+        add-properties: true
+
+jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+        ddl-auto: update
+    show-sql: true
+    properties:
+        hibernate:
+            format_sql: true
+
+springdoc:
+    api-docs:
+        enabled: true
+    swagger-ui:
+        enabled: true
+
+openapi:
+    service:
+        api-docs: v3/api-docs
+        title: Backend Service API Document for Testing
+        description: API documentation for Backend Service
+        version: 1.0.0
+        servers: ${BACKEND_SERVICE:http://localhost:${server.port}}
