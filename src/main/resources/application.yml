@@ -7,12 +7,12 @@ spring:
     profiles:
         active: @spring.profiles.active@
 
-management.endpoints:
+management:
+  endpoints:
     web:
-        exposure:
-            include: "*"
+      exposure:
+        include: health, info
 
 logging:
     level:
         root: INFO
-        web: INFO

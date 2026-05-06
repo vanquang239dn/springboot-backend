@@ -6,17 +6,20 @@ spring:
     devtools:
         add-properties: true
 
-jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-        ddl-auto: update
-    show-sql: true
-    properties:
-        hibernate:
-            format_sql: true
+    datasource:
+        url: ${POSTGRES_PROD_URL}
+        username: ${POSTGRES_PROD_USER}
+        password: ${POSTGRES_PROD_PASSWORD}
 
-springdoc:
-    api-docs:
+    jpa:
+        hibernate:
+            ddl-auto: validate
+        show-sql: false
+        properties:
+            hibernate:
+                format_sql: false
+
+    springdoc:
         enabled: false
-    swagger-ui:
-        enabled: false
+        swagger-ui:
+            enabled: false

@@ -20,34 +20,36 @@ import io.swagger.v3.oas.models.servers.Server;
 @Profile({ "dev", "test" })
 public class OpenApiConfig {
 
-    @Bean
-    public GroupedOpenApi publicApi(@Value("${openapi.service.api-docs}") String apiDocs) {
-        return GroupedOpenApi.builder()
-                .group("apiDocs") // /v3/api-docs/backend-service
-                .packagesToScan("vn.vanquang239dn.controller")
-                .build();
-    }
+        @Bean
+        public GroupedOpenApi publicApi(@Value("${openapi.service.api-docs}") String apiDocs) {
+                return GroupedOpenApi.builder()
+                                .group("apiDocs") // /v3/api-docs/backend-service
+                                .packagesToScan("vn.vanquang239dn.controller")
+                                .build();
+        }
 
-    @Bean
-    public OpenAPI openAPI(
-            @Value("${openapi.service.title}") String title,
-            @Value("${openapi.service.server}") String serverUrl,
-            @Value("${openapi.service.version}") String version,
-            @Value("${openapi.service.description}") String description) {
-        final String securityChemeName = "bearerAuth";
-        return new OpenAPI()
-                .servers(List.of(new Server().url(serverUrl)))
-                .components(
-                        new Components()
-                                .addSecuritySchemes(securityChemeName, new SecurityScheme()
-                                        .type(SecurityScheme.Type.HTTP)
-                                        .scheme("bearer")
-                                        .bearerFormat("JWT")))
-                .security(List.of(new SecurityRequirement().addList(securityChemeName)))
-                .info(new Info()
-                        .title(title)
-                        .description(description)
-                        .version(version)
-                        .license(new License().name("Apache 2.0").url("https://springdoc.org")));
-    }
+        @Bean
+        public OpenAPI openAPI(
+                        @Value("${openapi.service.title}") String title,
+                        @Value("${openapi.service.server}") String serverUrl,
+                        @Value("${openapi.service.version}") String version,
+                        @Value("${openapi.service.description}") String description) {
+                final String securitySchemeName = "bearerAuth";
+                return new OpenAPI()
+                                .servers(List.of(new Server().url(serverUrl)))
+                                .components(
+                                                new Components()
+                                                                .addSecuritySchemes(securitySchemeName,
+                                                                                new SecurityScheme()
+                                                                                                .type(SecurityScheme.Type.HTTP)
+                                                                                                .scheme("bearer")
+                                                                                                .bearerFormat("JWT")))
+                                .security(List.of(new SecurityRequirement().addList(securitySchemeName)))
+                                .info(new Info()
+                                                .title(title)
+                                                .description(description)
+                                                .version(version)
+                                                .license(new License().name("Apache 2.0")
+                                                                .url("https://springdoc.org")));
+        }
 }

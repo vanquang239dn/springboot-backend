@@ -6,20 +6,25 @@ spring:
     devtools:
         add-properties: true
 
-jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-        ddl-auto: update
-    show-sql: true
-    properties:
-        hibernate:
-            format_sql: true
+    datasource:
+        url: ${POSTGRES_TEST_URL}
+        username: ${POSTGRES_TEST_USER}
+        password: ${POSTGRES_TEST_PASSWORD}
 
-springdoc:
-    api-docs:
-        enabled: true
-    swagger-ui:
-        enabled: true
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+                format_sql: true
+
+    springdoc:
+        api-docs:
+            enabled: true
+        swagger-ui:
+            enabled: true
 
 openapi:
     service:
@@ -27,4 +32,4 @@ openapi:
         title: Backend Service API Document for Testing
         description: API documentation for Backend Service
         version: 1.0.0
-        servers: ${BACKEND_SERVICE:http://localhost:${server.port}}
+        server: ${BACKEND_SERVICE:http://localhost:${server.port}}
