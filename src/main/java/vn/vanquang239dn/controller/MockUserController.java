@@ -1,9 +1,9 @@
+
 package vn.vanquang239dn.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.micrometer.core.ipc.http.HttpSender.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import vn.vanquang239dn.controller.request.UserCreationRequest;
@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,9 +28,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/mock/user")
 @Tag(name = "User Controller", description = "Controller for managing users")
-public class UserController {
+public class MockUserController {
 
     // Mock API for fetching user list
     @Operation(summary = "Get user list", description = "Mock API : Returns a list of users")
@@ -42,10 +41,10 @@ public class UserController {
 
         // Implementation for fetching user list based on keyword
         List<UserResponse> UserList = List.of(
-                new UserResponse(1L, "admin", "John", "Doe", Gender.MALE, new Date(),
-                        "JohnDoe@gmail.com", "123-456-7890"),
-                new UserResponse(2L, "user1", "Jane", "Smith", Gender.FEMALE, new Date(),
-                        "JaneSmith@gmail.com", "098-765-4321"));
+                new UserResponse(1L, "John", "Doe", Gender.MALE, new Date(),
+                        "JohnDoe@gmail.com", "123-456-7890", "admin"),
+                new UserResponse(2L, "Jane", "Smith", Gender.FEMALE, new Date(),
+                        "JaneSmith@gmail.com", "098-765-4321", "user"));
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", HttpStatus.OK.value());
@@ -61,8 +60,8 @@ public class UserController {
     public Map<String, Object> getUserDetail(@PathVariable Long userId) {
 
         // Implementation for fetching user details
-        UserResponse userResponse = new UserResponse(userId, "admin", "John", "Doe", Gender.MALE, new Date(),
-                "JohnDoe@gmail.com", "123-456-7890");
+        UserResponse userResponse = new UserResponse(userId, "John", "Doe", Gender.MALE, new Date(),
+                "JohnDoe@gmail.com", "123-456-7890", "admin");
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", HttpStatus.OK.value());
@@ -72,14 +71,17 @@ public class UserController {
         return response;
     }
 
-    // API for creating a new user
+    // Mock API for creating a new user
     @Operation(summary = "Create user", description = "Mock API : Create a new user")
     @PostMapping("/add")
-    public ResponseEntity<Long> createUser(@RequestBody UserCreationRequest userRequest) {
-        // Implementation for creating a new user
+    public Map<String, Object> createUser(@RequestBody UserCreationRequest userRequest) {
 
-        return new ResponseEntity<>(1L, HttpStatus.CREATED);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", HttpStatus.CREATED.value());
+        response.put("message", "user created");
+        response.put("data", 3L);
 
+        return response;
     }
 
     // Mock API for updating user details
