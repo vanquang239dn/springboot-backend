@@ -3,16 +3,17 @@ package vn.vanquang239dn.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.micrometer.core.ipc.http.HttpSender.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import vn.vanquang239dn.controller.request.UserCreationRequest;
-import vn.vanquang239dn.controller.request.UserPasswordUpdateRequest;
-import vn.vanquang239dn.controller.request.UserUpdateRequest;
-import vn.vanquang239dn.controller.response.UserResponse;
-import vn.vanquang239dn.model.enums.Gender;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import vn.vanquang239dn.dto.request.UserCreationRequest;
+import vn.vanquang239dn.dto.request.UserPasswordUpdateRequest;
+import vn.vanquang239dn.dto.request.UserUpdateRequest;
+import vn.vanquang239dn.dto.response.UserPageResponse;
+import vn.vanquang239dn.dto.response.UserResponse;
+import vn.vanquang239dn.service.impl.UserServiceImpl;
 
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,39 +31,39 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/user")
+@RequiredArgsConstructor
+@Slf4j(topic = "USER-CONTROLLER")
 @Tag(name = "User Controller", description = "Controller for managing users")
 public class UserController {
 
+    private final UserServiceImpl userService;
+
     // Mock API for fetching user list
-    @Operation(summary = "Get user list", description = "Mock API : Returns a list of users")
+    @Operation(summary = "Get user list", description = "Returns a list of users")
     @GetMapping("/list")
     public Map<String, Object> getUserList(@RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String sortBy,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "5") int size) {
 
         // Implementation for fetching user list based on keyword
-        List<UserResponse> UserList = List.of(
-                new UserResponse(1L, "admin", "John", "Doe", Gender.MALE, new Date(),
-                        "JohnDoe@gmail.com", "123-456-7890"),
-                new UserResponse(2L, "user1", "Jane", "Smith", Gender.FEMALE, new Date(),
-                        "JaneSmith@gmail.com", "098-765-4321"));
+        UserPageResponse userPageResponse = userService.findAll(keyword, sortBy, page, size);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", HttpStatus.OK.value());
         response.put("message", "user list");
-        response.put("data", UserList);
+        response.put("data", userPageResponse);
 
         return response;
     }
 
-    // Mock API for fetching user details
-    @Operation(summary = "Get user details", description = "Mock API : Returns details of a specific user")
+    // API for fetching user details
+    @Operation(summary = "Get user details", description = "Returns details of a specific user")
     @GetMapping("/{userId}")
     public Map<String, Object> getUserDetail(@PathVariable Long userId) {
 
+        UserResponse userResponse = userService.findById(userId);
         // Implementation for fetching user details
-        UserResponse userResponse = new UserResponse(userId, "admin", "John", "Doe", Gender.MALE, new Date(),
-                "JohnDoe@gmail.com", "123-456-7890");
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", HttpStatus.OK.value());
@@ -73,20 +74,27 @@ public class UserController {
     }
 
     // API for creating a new user
-    @Operation(summary = "Create user", description = "Mock API : Create a new user")
+    @Operation(summary = "Create user", description = "Create a new user")
     @PostMapping("/add")
-    public ResponseEntity<Long> createUser(@RequestBody UserCreationRequest userRequest) {
+    public ResponseEntity<Map<String, Object>> createUser(@RequestBody UserCreationRequest userRequest) {
         // Implementation for creating a new user
 
-        return new ResponseEntity<>(1L, HttpStatus.CREATED);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", HttpStatus.CREATED.value());
+        response.put("message", "user created");
+        response.put("data", userService.save(userRequest));
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
 
     }
 
-    // Mock API for updating user details
-    @Operation(summary = "Update user", description = "Mock API : Update existing user details")
+    // API for updating user details
+    @Operation(summary = "Update user", description = "Update existing user details")
     @PutMapping("/update")
     public Map<String, Object> updateUser(@RequestBody UserUpdateRequest userRequest) {
 
+        log.info("Updating user with id={}", userRequest.getUserId());
+        userService.update(userRequest);
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", HttpStatus.ACCEPTED.value());
         response.put("message", "user updated");
@@ -95,24 +103,26 @@ public class UserController {
         return response;
     }
 
-    // Mock API for updating user password
-    @Operation(summary = "Update user password", description = "Mock API : Update existing user password")
+    // API for updating user password
+    @Operation(summary = "Update user password", description = "Update existing user password")
     @PatchMapping("/update-pwd")
     public Map<String, Object> updatePassword(@RequestBody UserPasswordUpdateRequest userRequest) {
 
+        userService.updatePassword(userRequest);
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", HttpStatus.ACCEPTED.value());
-        response.put("message", "passoword updated");
+        response.put("message", "password updated");
         response.put("data", "");
 
         return response;
     }
 
-    // Mock API for delete user
-    @Operation(summary = "Delete user", description = "Mock API : Delete an existing user")
+    // API for delete use
+    @Operation(summary = "Delete user", description = "Delete an existing user")
     @DeleteMapping("/del/{userId}")
     public Map<String, Object> deleteUser(@PathVariable Long userId) {
 
+        userService.deleteById(userId);
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", HttpStatus.RESET_CONTENT.value());
         response.put("message", "user deleted");

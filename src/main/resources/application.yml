@@ -6,6 +6,9 @@ spring:
         name: backend-service
     profiles:
         active: @spring.profiles.active@
+    flyway:
+        enabled: true
+        locations: classpath:db/migration
 
 management:
   endpoints:

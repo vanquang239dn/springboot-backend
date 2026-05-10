@@ -1,4 +1,4 @@
-package vn.vanquang239dn.controller.request;
+package vn.vanquang239dn.dto.request;
 
 import java.io.Serializable;
 

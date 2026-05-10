@@ -1,4 +1,4 @@
-package vn.vanquang239dn.model;
+package vn.vanquang239dn.model.entity;
 
 import java.sql.Timestamp;
 
@@ -10,6 +10,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,11 +18,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "tbl_address")
+@Table(name = "addresses")
 public class AddressEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     private Long id;
 
@@ -48,6 +49,9 @@ public class AddressEntity {
 
     @Column(name = "address_type", length = 255)
     private String addressType;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp

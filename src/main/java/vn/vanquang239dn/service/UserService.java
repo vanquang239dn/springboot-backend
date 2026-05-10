@@ -1,15 +1,14 @@
 package vn.vanquang239dn.service;
 
-import java.util.List;
-
-import vn.vanquang239dn.controller.request.UserCreationRequest;
-import vn.vanquang239dn.controller.request.UserPasswordUpdateRequest;
-import vn.vanquang239dn.controller.request.UserUpdateRequest;
-import vn.vanquang239dn.controller.response.UserResponse;
+import vn.vanquang239dn.dto.request.UserCreationRequest;
+import vn.vanquang239dn.dto.request.UserPasswordUpdateRequest;
+import vn.vanquang239dn.dto.request.UserUpdateRequest;
+import vn.vanquang239dn.dto.response.UserPageResponse;
+import vn.vanquang239dn.dto.response.UserResponse;
 
 public interface UserService {
 
-    List<UserResponse> findAll();
+    UserPageResponse findAll(String keyword, String sortBy, int page, int size);
 
     UserResponse findById(Long userId);
 

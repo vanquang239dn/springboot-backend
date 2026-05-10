@@ -1,13 +1,12 @@
-package vn.vanquang239dn.model;
+package vn.vanquang239dn.model.entity;
 
 import java.sql.Timestamp;
-import java.util.Date;
+import java.time.LocalDate;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
-import org.hibernate.usertype.UserType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,15 +20,16 @@ import lombok.Getter;
 import lombok.Setter;
 import vn.vanquang239dn.model.enums.Gender;
 import vn.vanquang239dn.model.enums.UserStatus;
+import vn.vanquang239dn.model.enums.UserType;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "tbl_user")
+@Table(name = "users")
 public class UserEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     private Long id;
 
@@ -40,10 +40,12 @@ public class UserEntity {
     private String lastName;
 
     @Column(name = "gender", nullable = false, length = 6)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Gender gender;
 
     @Column(name = "birthday", nullable = false)
-    private Date birthday;
+    private LocalDate birthday;
 
     @Column(name = "email", unique = true, nullable = false, length = 255)
     private String email;
@@ -54,15 +56,15 @@ public class UserEntity {
     @Column(name = "username", unique = true, nullable = false, length = 255)
     private String username;
 
-    @Column(name = "password", nullable = false, length = 32)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    @Column(name = "type", nullable = false, length = 20)
+    @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private UserType type;
 
-    @Column(name = "status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private UserStatus status;

@@ -1,22 +1,6 @@
 
 package vn.vanquang239dn.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import vn.vanquang239dn.controller.request.UserCreationRequest;
-import vn.vanquang239dn.controller.request.UserPasswordUpdateRequest;
-import vn.vanquang239dn.controller.request.UserUpdateRequest;
-import vn.vanquang239dn.controller.response.UserResponse;
-import vn.vanquang239dn.model.enums.Gender;
-
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,11 +9,26 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import vn.vanquang239dn.dto.request.UserCreationRequest;
+import vn.vanquang239dn.dto.request.UserPasswordUpdateRequest;
+import vn.vanquang239dn.dto.request.UserUpdateRequest;
+import vn.vanquang239dn.dto.response.UserResponse;
+import vn.vanquang239dn.model.enums.Gender;
+
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/mock/user")
-@Tag(name = "User Controller", description = "Controller for managing users")
+@Tag(name = "Mock Controller", description = "Controller for managing users")
 public class MockUserController {
 
     // Mock API for fetching user list
@@ -41,9 +40,9 @@ public class MockUserController {
 
         // Implementation for fetching user list based on keyword
         List<UserResponse> UserList = List.of(
-                new UserResponse(1L, "John", "Doe", Gender.MALE, new Date(),
+                new UserResponse(1L, "John", "Doe", Gender.MALE, LocalDate.now(),
                         "JohnDoe@gmail.com", "123-456-7890", "admin"),
-                new UserResponse(2L, "Jane", "Smith", Gender.FEMALE, new Date(),
+                new UserResponse(2L, "Jane", "Smith", Gender.FEMALE, LocalDate.now(),
                         "JaneSmith@gmail.com", "098-765-4321", "user"));
 
         Map<String, Object> response = new LinkedHashMap<>();
@@ -60,7 +59,7 @@ public class MockUserController {
     public Map<String, Object> getUserDetail(@PathVariable Long userId) {
 
         // Implementation for fetching user details
-        UserResponse userResponse = new UserResponse(userId, "John", "Doe", Gender.MALE, new Date(),
+        UserResponse userResponse = new UserResponse(userId, "John", "Doe", Gender.MALE, LocalDate.now(),
                 "JohnDoe@gmail.com", "123-456-7890", "admin");
 
         Map<String, Object> response = new LinkedHashMap<>();
