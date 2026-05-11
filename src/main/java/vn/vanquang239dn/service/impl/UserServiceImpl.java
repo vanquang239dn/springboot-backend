@@ -22,6 +22,7 @@ import vn.vanquang239dn.dto.request.UserPasswordUpdateRequest;
 import vn.vanquang239dn.dto.request.UserUpdateRequest;
 import vn.vanquang239dn.dto.response.UserPageResponse;
 import vn.vanquang239dn.dto.response.UserResponse;
+import vn.vanquang239dn.exception.DuplicateResourceException;
 import vn.vanquang239dn.exception.ResourceNotFoundException;
 import vn.vanquang239dn.model.entity.AddressEntity;
 import vn.vanquang239dn.model.entity.UserEntity;
@@ -203,6 +204,14 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public Long update(UserUpdateRequest req) {
         // Implement logic to update an existing user in the database
+
+        // Check duplicate email
+        boolean emailExists = userRepository.existsByEmailAndIdNot(req.getEmail(), req.getUserId());
+
+        if (emailExists) {
+            throw new DuplicateResourceException("email", req.getEmail(), "Email already exists: " + req.getEmail());
+        }
+
         // Get user entity by ID, if not found throw ResourceNotFoundException
         UserEntity userEntity = getUserEntityById(req.getUserId());
         userEntity.setFirstName(req.getFirstName());
@@ -285,7 +294,8 @@ public class UserServiceImpl implements UserService {
 
     private UserEntity getUserEntityById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("userId", userId.toString(),
+                        "User not found with Id: " + userId));
     }
 
 }

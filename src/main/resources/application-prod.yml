@@ -1,12 +1,18 @@
+server:
+    port: ${PROD_SERVER_PORT}
+    error:
+        include-message: never
+        include-stacktrace: never
+
 spring:
     config:
         activate:
             on-profile: prod
 
     datasource:
-        url: ${POSTGRES_PROD_URL}
-        username: ${POSTGRES_PROD_USER}
-        password: ${POSTGRES_PROD_PASSWORD}
+        url: ${TEST_POSTGRES_URL}
+        username: ${TEST_POSTGRES_USERNAME}
+        password: ${TEST_POSTGRES_PASSWORD}
 
     jpa:
         hibernate:
@@ -25,10 +31,9 @@ spring:
         enabled: true
         locations: classpath:db/migration
 
-        # Chỉ bật nếu migrate DB cũ sang Flyway
         baseline-on-migrate: true
 
-        # Chặn clean production DB
+        # Disable clean production DB
         clean-disabled: true
 
     springdoc:
@@ -36,8 +41,3 @@ spring:
 
         swagger-ui:
             enabled: false
-
-server:
-    error:
-        include-message: always
-        include-stacktrace: always

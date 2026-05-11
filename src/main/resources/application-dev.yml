@@ -1,3 +1,9 @@
+server:
+    port: ${DEV_SERVER_PORT}
+    error:
+        include-message: always
+        include-stacktrace: always
+
 spring:
     config:
         activate:
@@ -7,9 +13,9 @@ spring:
         add-properties: true
 
     datasource:
-        url: jdbc:postgresql://localhost:5432/dev_backend_service
-        username: dev_user
-        password: devpass
+        url: ${DEV_POSTGRES_URL}
+        username: ${DEV_POSTGRES_USERNAME}
+        password: ${DEV_POSTGRES_PASSWORD}
 
     jpa:
         hibernate:
@@ -20,6 +26,10 @@ spring:
             hibernate:
                 dialect: org.hibernate.dialect.PostgreSQLDialect
                 format_sql: true
+
+    sendGrid:
+        api-key: ${SENDGRID_API_KEY}
+        sender-email: ${SENDGRID_SENDER_EMAIL}
 
     flyway:
         enabled: true
@@ -33,11 +43,6 @@ spring:
 
         swagger-ui:
             enabled: true
-
-server:
-    error:
-        include-message: always
-        include-stacktrace: always
 
 openapi:
     service:

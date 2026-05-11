@@ -3,11 +3,12 @@ package vn.vanquang239dn.exception;
 import lombok.Getter;
 
 @Getter
-public class ResourceNotFoundException extends RuntimeException {
+public class DuplicateResourceException extends RuntimeException {
+
     private final String fieldName;
     private final String fieldValue;
 
-    public ResourceNotFoundException(String fieldName, String fieldValue, String message) {
+    public DuplicateResourceException(String fieldName, String fieldValue, String message) {
         super(message);
         this.fieldName = fieldName;
         this.fieldValue = fieldValue;

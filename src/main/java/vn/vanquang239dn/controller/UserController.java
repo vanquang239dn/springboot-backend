@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import vn.vanquang239dn.dto.request.UserCreationRequest;
@@ -15,11 +16,10 @@ import vn.vanquang239dn.dto.response.UserResponse;
 import vn.vanquang239dn.service.impl.UserServiceImpl;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 @Slf4j(topic = "USER-CONTROLLER")
 @Tag(name = "User Controller", description = "Controller for managing users")
+@Validated
 public class UserController {
 
     private final UserServiceImpl userService;
@@ -60,7 +61,8 @@ public class UserController {
     // API for fetching user details
     @Operation(summary = "Get user details", description = "Returns details of a specific user")
     @GetMapping("/{userId}")
-    public Map<String, Object> getUserDetail(@PathVariable Long userId) {
+    public Map<String, Object> getUserDetail(
+            @PathVariable Long userId) {
 
         UserResponse userResponse = userService.findById(userId);
         // Implementation for fetching user details
@@ -76,7 +78,7 @@ public class UserController {
     // API for creating a new user
     @Operation(summary = "Create user", description = "Create a new user")
     @PostMapping("/add")
-    public ResponseEntity<Map<String, Object>> createUser(@RequestBody UserCreationRequest userRequest) {
+    public Map<String, Object> createUser(@RequestBody @Valid UserCreationRequest userRequest) {
         // Implementation for creating a new user
 
         Map<String, Object> response = new LinkedHashMap<>();
@@ -84,14 +86,14 @@ public class UserController {
         response.put("message", "user created");
         response.put("data", userService.save(userRequest));
 
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return response;
 
     }
 
     // API for updating user details
     @Operation(summary = "Update user", description = "Update existing user details")
     @PutMapping("/update")
-    public Map<String, Object> updateUser(@RequestBody UserUpdateRequest userRequest) {
+    public Map<String, Object> updateUser(@RequestBody @Valid UserUpdateRequest userRequest) {
 
         log.info("Updating user with id={}", userRequest.getUserId());
         userService.update(userRequest);
