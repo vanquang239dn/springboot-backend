@@ -1,5 +1,7 @@
 package vn.vanquang239dn.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +14,7 @@ import vn.vanquang239dn.model.entity.UserEntity;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    UserEntity findByUsername(String username);
+    Optional<UserEntity> findByUsername(String username);
 
     UserEntity findByEmail(String email);
 

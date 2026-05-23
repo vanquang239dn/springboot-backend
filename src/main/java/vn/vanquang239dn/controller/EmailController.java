@@ -5,7 +5,8 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import vn.vanquang239dn.dto.request.MailSendingRequest;
-import vn.vanquang239dn.service.EmailService;
+import vn.vanquang239dn.service.impl.EmailServiceImpl;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Email Controller", description = "Controller for sending email")
 public class EmailController {
 
-    private final EmailService emailService;
+    private final EmailServiceImpl emailService;
 
     @PostMapping("/send")
     public void send(@RequestBody MailSendingRequest emailRequest) throws IOException {

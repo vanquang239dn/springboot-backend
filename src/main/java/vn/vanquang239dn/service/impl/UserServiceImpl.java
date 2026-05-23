@@ -166,7 +166,7 @@ public class UserServiceImpl implements UserService {
         userEntity.setEmail(req.getEmail());
         userEntity.setPhone(req.getPhone());
         userEntity.setUsername(req.getUsername());
-        userEntity.setPassword("123456");
+        userEntity.setPassword(passwordEncoder.encode("123456"));
         userEntity.setType(req.getType());
         userEntity.setStatus(UserStatus.NONE);
 
@@ -209,7 +209,7 @@ public class UserServiceImpl implements UserService {
         boolean emailExists = userRepository.existsByEmailAndIdNot(req.getEmail(), req.getUserId());
 
         if (emailExists) {
-            throw new DuplicateResourceException("email", req.getEmail(), "Email already exists: " + req.getEmail());
+            throw new DuplicateResourceException("Resource duplicate");
         }
 
         // Get user entity by ID, if not found throw ResourceNotFoundException
@@ -294,8 +294,7 @@ public class UserServiceImpl implements UserService {
 
     private UserEntity getUserEntityById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("userId", userId.toString(),
-                        "User not found with Id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
     }
 
 }

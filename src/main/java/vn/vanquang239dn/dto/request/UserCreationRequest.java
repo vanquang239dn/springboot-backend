@@ -24,14 +24,20 @@ public class UserCreationRequest implements Serializable {
 
     @NotBlank(message = "Last name must be not blank")
     private String lastName;
+
     private Gender gender;
+
     private LocalDate birthday;
 
     @Email(message = "Email invalid")
     private String email;
+
     private String phone;
+
     private String username;
+
     private UserType type;
+
     private List<AddressRequest> addresses;
 
 }

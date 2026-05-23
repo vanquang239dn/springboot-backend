@@ -1,6 +1,7 @@
 package vn.vanquang239dn.model.entity;
 
-import java.sql.Timestamp;
+import java.io.Serializable;
+import java.time.Instant;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -19,7 +20,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "addresses")
-public class AddressEntity {
+public class AddressEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,10 +56,10 @@ public class AddressEntity {
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
-    private Timestamp createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
-    private Timestamp updatedAt;
+    private Instant updatedAt;
 
 }
