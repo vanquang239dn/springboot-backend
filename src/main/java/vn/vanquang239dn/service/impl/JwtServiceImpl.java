@@ -2,10 +2,9 @@ package vn.vanquang239dn.service.impl;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
@@ -13,6 +12,9 @@ import javax.crypto.SecretKey;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -23,7 +25,12 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import vn.vanquang239dn.config.properties.JwtProperties;
+import vn.vanquang239dn.model.claims.AccessTokenClaims;
+import vn.vanquang239dn.model.claims.RefreshTokenClaims;
+import vn.vanquang239dn.model.entity.RefreshTokenEntity;
 import vn.vanquang239dn.model.enums.TokenType;
+import vn.vanquang239dn.model.principal.CustomUserPrincipal;
+import vn.vanquang239dn.repository.RefreshTokenRepository;
 import vn.vanquang239dn.service.JwtService;
 
 @Service
@@ -33,6 +40,8 @@ import vn.vanquang239dn.service.JwtService;
 public class JwtServiceImpl implements JwtService {
 
     private final JwtProperties jwtProperties;
+    private final ObjectMapper objectMapper;
+    private final RefreshTokenRepository refreshTokenRepository;
     private SecretKey accessKey;
     private SecretKey refreshKey;
 
@@ -45,61 +54,125 @@ public class JwtServiceImpl implements JwtService {
                 Decoders.BASE64.decode(jwtProperties.refreshSecretKey()));
     }
 
-    // Generate Access Token
     @Override
-    public String generateAccessToken(long userId, String username,
-            Collection<? extends GrantedAuthority> authorities) {
+    public String generateAccessToken(CustomUserPrincipal userPrincipal) {
 
-        log.info("Generate access token for user {} with authorities {}", userId, authorities);
+        log.info("Generate access token for user {} ", userPrincipal.getUserId());
 
-        Map<String, Object> claims = buildClaims(userId, authorities);
+        // Access token expiration time
+        Instant now = Instant.now();
+        Instant accessTokenExpiredAt = now.plusMillis(Duration.ofMinutes(jwtProperties.expireMinutes()).toMillis());
 
-        return generateToken(claims, username, TokenType.ACCESS_TOKEN,
-                Duration.ofMinutes(jwtProperties.expireMinutes()).toMillis());
-    }
-
-    // Generate Refresh Token
-    @Override
-    public String generateRefreshToken(long userId, String username,
-            Collection<? extends GrantedAuthority> authorities) {
-
-        log.info("Generate refresh token for user {} with authorities {}", userId, authorities);
-
-        Map<String, Object> claims = buildClaims(userId, authorities);
-
-        return generateToken(claims, username, TokenType.REFRESH_TOKEN,
-                Duration.ofDays(jwtProperties.expireDays()).toMillis());
+        return Jwts.builder()
+                .subject(userPrincipal.getUserId().toString())
+                .claims(toClaimsMap(buildAccessTokenClaims(userPrincipal)))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(accessTokenExpiredAt))
+                .signWith(getSecretKey(TokenType.ACCESS_TOKEN), SIG.HS256)
+                .compact();
     }
 
     @Override
-    public String extractUsername(String token, TokenType type) {
+    public String generateRefreshTokenForLogin(CustomUserPrincipal userPrincipal) {
+
+        log.info("Generate refresh token for user {} for login ", userPrincipal.getUserId());
+
+        // Refresh token expiration time
+        Instant now = Instant.now();
+        Instant refreshTokenExpiredAt = now.plusMillis(Duration.ofDays(jwtProperties.expireDays()).toMillis());
+
+        // Create new jwtID
+        String jwtId = UUID.randomUUID().toString();
+
+        // Create new sessionId
+        String sessionId = UUID.randomUUID().toString();
+
+        RefreshTokenEntity refreshTokenEntity = RefreshTokenEntity.builder()
+                .userId(userPrincipal.getUserId())
+                .jwtId(jwtId)
+                .sessionId(sessionId)
+                .expiredAt(refreshTokenExpiredAt)
+                .build();
+
+        // Save refresh token to DB
+        refreshTokenRepository.save(refreshTokenEntity);
+
+        return Jwts.builder()
+                .subject(userPrincipal.getUserId().toString())
+                .claims(toClaimsMap(buildRefreshTokenClaims(jwtId, sessionId)))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(refreshTokenExpiredAt))
+                .signWith(getSecretKey(TokenType.REFRESH_TOKEN), SIG.HS256)
+                .compact();
+    }
+
+    @Override
+    public String generateRefreshTokenForRefresh(CustomUserPrincipal userPrincipal, String oldSessionId) {
+
+        log.info("Generate refresh token for user {} for refresh", userPrincipal.getUserId());
+
+        // Refresh token expiration time
+        Instant now = Instant.now();
+        Instant refreshTokenExpiredAt = now.plusMillis(Duration.ofDays(jwtProperties.expireDays()).toMillis());
+
+        // Create new jwtID
+        String jwtId = UUID.randomUUID().toString();
+
+        RefreshTokenEntity refreshTokenEntity = RefreshTokenEntity.builder()
+                .userId(userPrincipal.getUserId())
+                .jwtId(jwtId)
+                .sessionId(oldSessionId)
+                .expiredAt(refreshTokenExpiredAt)
+                .build();
+
+        // Save refresh token to DB
+        refreshTokenRepository.save(refreshTokenEntity);
+
+        return Jwts.builder()
+                .subject(userPrincipal.getUserId().toString())
+                .claims(toClaimsMap(buildRefreshTokenClaims(jwtId, oldSessionId)))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(refreshTokenExpiredAt))
+                .signWith(getSecretKey(TokenType.REFRESH_TOKEN), SIG.HS256)
+                .compact();
+    }
+
+    @Override
+    public String extractSubject(String token, TokenType type) {
         return extractClaim(token, type, Claims::getSubject);
     }
 
-    public <T> T extractClaim(String token, TokenType type, Function<Claims, T> claimsExtractor) {
-        final Claims claims = extractAllClaims(token, type);
-        return claimsExtractor.apply(claims);
-    }
-
+    @Override
     public Claims extractAllClaims(String token, TokenType type) {
         return Jwts.parser()
                 .verifyWith(getSecretKey(type))
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-
     }
 
-    private String generateToken(Map<String, Object> claims, String username, TokenType tokenType,
-            long expirationMillis) {
+    private <T> T extractClaim(String token, TokenType type, Function<Claims, T> claimsExtractor) {
+        final Claims claims = extractAllClaims(token, type);
+        return claimsExtractor.apply(claims);
+    }
 
-        return Jwts.builder()
-                .claims(claims)
-                .subject(username)
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(Instant.now().plusMillis(expirationMillis)))
-                .signWith(getSecretKey(tokenType), SIG.HS256)
-                .compact();
+    private AccessTokenClaims buildAccessTokenClaims(CustomUserPrincipal userPrincipal) {
+        return AccessTokenClaims.builder()
+                .username(userPrincipal.getUsername())
+                .authorities(userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
+                .build();
+    }
+
+    private RefreshTokenClaims buildRefreshTokenClaims(String jwtId, String sessionId) {
+        return RefreshTokenClaims.builder()
+                .jwtId(jwtId)
+                .sessionId(sessionId)
+                .build();
+    }
+
+    private Map<String, Object> toClaimsMap(Object claims) {
+        return objectMapper.convertValue(claims, new TypeReference<Map<String, Object>>() {
+        });
     }
 
     private SecretKey getSecretKey(TokenType tokenType) {
@@ -107,14 +180,5 @@ public class JwtServiceImpl implements JwtService {
             case ACCESS_TOKEN -> accessKey;
             case REFRESH_TOKEN -> refreshKey;
         };
-    }
-
-    private Map<String, Object> buildClaims(long userId, Collection<? extends GrantedAuthority> authorities) {
-
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("roles", authorities.stream().map(GrantedAuthority::getAuthority).toList());
-
-        return claims;
     }
 }

@@ -14,12 +14,20 @@ import vn.vanquang239dn.model.enums.Gender;
 @Builder
 @AllArgsConstructor
 public class UserResponse implements Serializable {
-    private long id;
-    private String firstName;
-    private String lastName;
-    private Gender gender;
-    private LocalDate birthday;
-    private String email;
-    private String phone;
-    private String username;
+
+        private long id;
+
+        private String firstName;
+
+        private String lastName;
+
+        private Gender gender;
+
+        private LocalDate birthday;
+
+        private String email;
+
+        private String phone;
+
+        private String username;
 }

@@ -2,20 +2,27 @@ package vn.vanquang239dn.dto.request;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
+@AllArgsConstructor
 public class AddressRequest implements Serializable {
 
-    private String apartmentNumber;
-    private String floor;
-    private String building;
-    private String streetNumber;
-    private String street;
-    private String city;
-    private String country;
-    private String addressType;
+        private final String apartmentNumber;
+
+        private final String floor;
+
+        private final String building;
+
+        private final String streetNumber;
+
+        private final String street;
+
+        private final String city;
+
+        private final String country;
+
+        private final String addressType;
 
 }

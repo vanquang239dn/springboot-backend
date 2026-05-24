@@ -155,36 +155,41 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long save(UserCreationRequest req) {
+
         // Implement logic to save a new user to the database
         log.info("Creating user with username={}", req.getUsername());
 
-        UserEntity userEntity = new UserEntity();
-        userEntity.setFirstName(req.getFirstName());
-        userEntity.setLastName(req.getLastName());
-        userEntity.setGender(req.getGender());
-        userEntity.setBirthday(req.getBirthday());
-        userEntity.setEmail(req.getEmail());
-        userEntity.setPhone(req.getPhone());
-        userEntity.setUsername(req.getUsername());
-        userEntity.setPassword(passwordEncoder.encode("123456"));
-        userEntity.setType(req.getType());
-        userEntity.setStatus(UserStatus.NONE);
+        UserEntity userEntity = UserEntity.builder()
+                .firstName(req.getFirstName())
+                .lastName(req.getLastName())
+                .gender(req.getGender())
+                .birthday(req.getBirthday())
+                .email(req.getEmail())
+                .phone(req.getPhone())
+                .username(req.getUsername())
+                .password(passwordEncoder.encode("123456"))
+                .role(req.getRole())
+                .status(UserStatus.NONE)
+                .build();
 
+        // Save user
         userRepository.save(userEntity);
 
         if (userEntity.getId() != null) {
             List<AddressEntity> addresses = req.getAddresses().stream()
                     .map(addressReq -> {
-                        AddressEntity addressEntity = new AddressEntity();
-                        addressEntity.setApartmentNumber(addressReq.getApartmentNumber());
-                        addressEntity.setFloor(addressReq.getFloor());
-                        addressEntity.setBuilding(addressReq.getBuilding());
-                        addressEntity.setStreetNumber(addressReq.getStreetNumber());
-                        addressEntity.setStreet(addressReq.getStreet());
-                        addressEntity.setCity(addressReq.getCity());
-                        addressEntity.setCountry(addressReq.getCountry());
-                        addressEntity.setAddressType(addressReq.getAddressType());
-                        addressEntity.setUserId(userEntity.getId());
+                        AddressEntity addressEntity = AddressEntity.builder()
+                                .apartmentNumber(addressReq.getApartmentNumber())
+                                .floor(addressReq.getFloor())
+                                .building(addressReq.getBuilding())
+                                .streetNumber(addressReq.getStreetNumber())
+                                .street(addressReq.getStreet())
+                                .city(addressReq.getCity())
+                                .country(addressReq.getCountry())
+                                .addressType(addressReq.getAddressType())
+                                .userId(userEntity.getId())
+                                .build();
+
                         return addressEntity;
                     })
                     .toList();
@@ -203,6 +208,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long update(UserUpdateRequest req) {
+
         // Implement logic to update an existing user in the database
 
         // Check duplicate email
@@ -221,6 +227,7 @@ public class UserServiceImpl implements UserService {
         userEntity.setEmail(req.getEmail());
         userEntity.setPhone(req.getPhone());
         userEntity.setUsername(req.getUsername());
+
         userRepository.save(userEntity);
 
         log.info("User updated with ID={}", userEntity.getId());
@@ -232,16 +239,21 @@ public class UserServiceImpl implements UserService {
                         AddressEntity addressEntity = addressRepository.findByUserIdAndAddressType(userEntity.getId(),
                                 addressReq.getAddressType());
                         if (addressEntity == null) {
-                            addressEntity = new AddressEntity();
-                            addressEntity.setApartmentNumber(addressReq.getApartmentNumber());
-                            addressEntity.setFloor(addressReq.getFloor());
-                            addressEntity.setBuilding(addressReq.getBuilding());
-                            addressEntity.setStreetNumber(addressReq.getStreetNumber());
-                            addressEntity.setStreet(addressReq.getStreet());
-                            addressEntity.setCity(addressReq.getCity());
-                            addressEntity.setCountry(addressReq.getCountry());
-                            addressEntity.setAddressType(addressReq.getAddressType());
-                            addressEntity.setUserId(userEntity.getId());
+                            AddressEntity newAddressEntity = AddressEntity.builder()
+                                    .apartmentNumber(addressReq.getApartmentNumber())
+                                    .floor(addressReq.getFloor())
+                                    .building(addressReq.getBuilding())
+                                    .streetNumber(addressReq.getStreetNumber())
+                                    .street(addressReq.getStreet())
+                                    .city(addressReq.getCity())
+                                    .country(addressReq.getCountry())
+                                    .addressType(addressReq.getAddressType())
+                                    .userId(userEntity.getId())
+                                    .build();
+
+                            // Replace address entity
+                            addressEntity = newAddressEntity;
+
                         } else {
                             addressEntity.setApartmentNumber(addressReq.getApartmentNumber());
                             addressEntity.setFloor(addressReq.getFloor());
@@ -250,8 +262,11 @@ public class UserServiceImpl implements UserService {
                             addressEntity.setStreet(addressReq.getStreet());
                             addressEntity.setCity(addressReq.getCity());
                             addressEntity.setCountry(addressReq.getCountry());
+
                         }
+
                         return addressEntity;
+
                     })
                     .toList();
 

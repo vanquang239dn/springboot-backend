@@ -1,6 +1,6 @@
 package vn.vanquang239dn.model.enums;
 
-public enum UserType {
+public enum UserRole {
 
     OWNER, ADMIN, USER
 

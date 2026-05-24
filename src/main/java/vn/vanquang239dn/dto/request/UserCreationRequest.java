@@ -8,36 +8,32 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import vn.vanquang239dn.model.enums.Gender;
-import vn.vanquang239dn.model.enums.UserType;
+import vn.vanquang239dn.model.enums.UserRole;
 
 @Getter
-@Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class UserCreationRequest implements Serializable {
 
-    @NotBlank(message = "First name must be not blank")
-    private String firstName;
+        @NotBlank(message = "First name must be not blank")
+        private final String firstName;
 
-    @NotBlank(message = "Last name must be not blank")
-    private String lastName;
+        @NotBlank(message = "Last name must be not blank")
+        private final String lastName;
 
-    private Gender gender;
+        private final Gender gender;
 
-    private LocalDate birthday;
+        private final LocalDate birthday;
 
-    @Email(message = "Email invalid")
-    private String email;
+        @Email(message = "Email invalid")
+        private final String email;
 
-    private String phone;
+        private final String phone;
 
-    private String username;
+        private final String username;
 
-    private UserType type;
+        private final UserRole role;
 
-    private List<AddressRequest> addresses;
+        private final List<AddressRequest> addresses;
 
 }

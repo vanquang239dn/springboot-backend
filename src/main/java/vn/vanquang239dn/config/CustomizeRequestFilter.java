@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.SignatureException;
@@ -25,8 +26,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import vn.vanquang239dn.dto.response.ExceptionResponse;
-import vn.vanquang239dn.model.entity.CustomUserPrincipal;
 import vn.vanquang239dn.model.enums.TokenType;
+import vn.vanquang239dn.model.principal.CustomUserPrincipal;
 import vn.vanquang239dn.service.impl.CustomUserDetailsService;
 import vn.vanquang239dn.service.impl.JwtServiceImpl;
 
@@ -47,28 +48,34 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
+
+            // Get access token from header
             String accessToken = authHeader.substring(7);
 
-            try {
-                // Get username by token
-                String username = jwtService.extractUsername(accessToken, TokenType.ACCESS_TOKEN);
+            // Parse jwt claim
+            Claims claims = jwtService.extractAllClaims(accessToken, TokenType.REFRESH_TOKEN);
 
+            // Get user name from claims
+            String userName = claims.get("userName", String.class);
+
+            try {
                 // avoid re-authentication
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                     // Verify user by username
-                    CustomUserPrincipal userPrincipal = customerUserDetailsService.loadUserByUsername(username);
+                    CustomUserPrincipal userPrincipal = customerUserDetailsService
+                            .loadUserByUsername(userName);
 
                     // Create an empty context
                     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
+                    // Authenticate user
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                             userPrincipal, null, userPrincipal.getAuthorities());
 
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     securityContext.setAuthentication(authenticationToken);
                     SecurityContextHolder.setContext(securityContext);
-
                 }
             } catch (ExpiredJwtException e) {
                 writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Token expired", null);
@@ -85,6 +92,7 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+
     }
 
     private void writeErrorResponse(HttpServletRequest request, HttpServletResponse response, HttpStatus status,

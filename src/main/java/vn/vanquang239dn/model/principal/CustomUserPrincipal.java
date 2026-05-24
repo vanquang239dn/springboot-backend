@@ -1,6 +1,5 @@
-package vn.vanquang239dn.model.entity;
+package vn.vanquang239dn.model.principal;
 
-import java.io.Serializable;
 import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -13,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @Builder
 @RequiredArgsConstructor
-public class CustomUserPrincipal implements UserDetails, Serializable {
+public class CustomUserPrincipal implements UserDetails {
 
     private final Long userId;
 

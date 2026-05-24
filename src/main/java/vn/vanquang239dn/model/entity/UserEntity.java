@@ -17,14 +17,21 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.vanquang239dn.model.enums.Gender;
 import vn.vanquang239dn.model.enums.UserStatus;
-import vn.vanquang239dn.model.enums.UserType;
+import vn.vanquang239dn.model.enums.UserRole;
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Entity
 @Table(name = "users")
 public class UserEntity implements Serializable {
@@ -60,10 +67,10 @@ public class UserEntity implements Serializable {
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    @Column(name = "type", nullable = false)
+    @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private UserType type;
+    private UserRole role;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

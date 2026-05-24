@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +33,7 @@ public class RestExceptionHandler {
                                                                             "timestamp": "2026-01-01T17:30:30.123+00:00",
                                                                             "status": 400,
                                                                             "path": "api/v1/...",
-                                                                            "message": "Vali"
+                                                                            "message": "Bad Request"
                                                                         }
                                                                         """)
                                         })
@@ -49,7 +48,7 @@ public class RestExceptionHandler {
                 e.getBindingResult().getFieldErrors()
                                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-                return buildExceptionResponse(HttpStatus.BAD_REQUEST, "Argument invalid ", errors, request);
+                return buildExceptionResponse(HttpStatus.BAD_REQUEST, "Argument invalid", errors, request);
 
         }
 
@@ -64,7 +63,7 @@ public class RestExceptionHandler {
                                                                           "timestamp": "2026-01-01T17:30:30.123+00:00",
                                                                           "status": 404,
                                                                           "path": "api/v1/...",
-                                                                          "message": ""
+                                                                          "message": "Resource not found"
                                                                         }
                                                                         """)
                                         })
@@ -87,7 +86,7 @@ public class RestExceptionHandler {
                                                                           "timestamp": "2026-01-01T17:30:30.123+00:00",
                                                                           "status": 400,
                                                                           "path": "api/v1/...",
-                                                                          "message": "{data} not found, Please try again!"
+                                                                          "message": "Duplicate resource"
                                                                         }
                                                                         """)
                                         })
@@ -110,7 +109,7 @@ public class RestExceptionHandler {
                                                                           "timestamp": "2026-01-01T17:30:30.123+00:00",
                                                                           "status": 401,
                                                                           "path": "api/v1/...",
-                                                                          "message": "{data} not found, Please try again!"
+                                                                          "message": "Response status exception"
                                                                         }
                                                                         """)
                                         })
@@ -119,7 +118,7 @@ public class RestExceptionHandler {
         public ExceptionResponse handleResponseStatusException(ResponseStatusException e,
                         HttpServletRequest request) {
 
-                return buildExceptionResponse(HttpStatus.UNAUTHORIZED, e.getMessage(), null, request);
+                return buildExceptionResponse(HttpStatus.UNAUTHORIZED, e.getReason(), null, request);
         }
 
         // Default exception

@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,8 +31,6 @@ import vn.vanquang239dn.service.impl.CustomUserDetailsService;
 @RequiredArgsConstructor
 public class AppConfig {
 
-    private final MailProperties mailProperties;
-
     // Spring web security configuration
     public static final String[] WHITELIST = {
             "/actuator/**",
@@ -43,24 +41,25 @@ public class AppConfig {
     };
 
     private final CustomizeRequestFilter customizeRequestFilter;
-
     private final CustomUserDetailsService customUserDetailsService;
+    private final MailProperties mailProperties;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        request -> request.requestMatchers("/**").permitAll().anyRequest().authenticated())
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers(WHITELIST).permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(customizeRequestFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
 
-    // For API : Config spring web configuration
-    @Bean
-    public WebSecurityCustomizer ignoreResources() {
-        return (webSecurity) -> webSecurity.ignoring().requestMatchers(WHITELIST);
+        return http.build();
     }
 
     // CORS configuration

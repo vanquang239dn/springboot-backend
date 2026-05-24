@@ -1,16 +1,18 @@
 package vn.vanquang239dn.service;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
-
+import io.jsonwebtoken.Claims;
 import vn.vanquang239dn.model.enums.TokenType;
+import vn.vanquang239dn.model.principal.CustomUserPrincipal;
 
 public interface JwtService {
 
-    String generateAccessToken(long userId, String username, Collection<? extends GrantedAuthority> authorities);
+    String generateRefreshTokenForLogin(CustomUserPrincipal userPrincipal);
 
-    String generateRefreshToken(long userId, String username, Collection<? extends GrantedAuthority> authorities);
+    String generateRefreshTokenForRefresh(CustomUserPrincipal userPrincipal, String oldSessionId);
 
-    String extractUsername(String token, TokenType tokenType);
+    String generateAccessToken(CustomUserPrincipal userPrincipal);
+
+    String extractSubject(String token, TokenType tokenType);
+
+    Claims extractAllClaims(String token, TokenType type);
 }

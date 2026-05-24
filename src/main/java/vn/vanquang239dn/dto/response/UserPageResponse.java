@@ -14,10 +14,14 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserPageResponse implements Serializable {
 
-    private int pageNumber;
-    private int pageSize;
-    private long totalElements;
-    private long totalPages;
-    private List<UserResponse> listUserResponse;
+        private int pageNumber;
+
+        private int pageSize;
+
+        private long totalElements;
+
+        private long totalPages;
+
+        private List<UserResponse> listUserResponse;
 
 }

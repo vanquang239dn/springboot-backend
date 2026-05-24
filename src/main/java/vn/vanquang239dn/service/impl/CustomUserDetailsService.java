@@ -7,8 +7,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import vn.vanquang239dn.model.entity.CustomUserPrincipal;
 import vn.vanquang239dn.model.entity.UserEntity;
+import vn.vanquang239dn.model.principal.CustomUserPrincipal;
 import vn.vanquang239dn.repository.UserRepository;
 
 @Service
@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .userId(user.getId())
                 .username(user.getUsername())
                 .password(user.getPassword())
-                .authorities(List.of(new SimpleGrantedAuthority(user.getType().name())))
+                .authorities(List.of(new SimpleGrantedAuthority(user.getRole().name())))
                 .build();
     }
 }
