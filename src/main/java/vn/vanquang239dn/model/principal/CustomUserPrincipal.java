@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import vn.vanquang239dn.model.enums.UserStatus;
 
 @Getter
 @Builder
@@ -19,6 +20,8 @@ public class CustomUserPrincipal implements UserDetails {
     private final String username;
 
     private final String password;
+
+    private final UserStatus userStatus;
 
     private final Collection<? extends GrantedAuthority> authorities;
 
@@ -39,6 +42,6 @@ public class CustomUserPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return UserStatus.ACTIVE.equals(userStatus);
     }
 }

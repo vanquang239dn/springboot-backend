@@ -25,7 +25,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.vanquang239dn.model.enums.Gender;
 import vn.vanquang239dn.model.enums.UserStatus;
-import vn.vanquang239dn.model.enums.UserRole;
 
 @Getter
 @Setter
@@ -38,8 +37,8 @@ public class UserEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", unique = true, nullable = false)
-    private Long id;
+    @Column(name = "user_id", unique = true, nullable = false)
+    private Long userId;
 
     @Column(name = "first_name", nullable = false, length = 255)
     private String firstName;
@@ -66,11 +65,6 @@ public class UserEntity implements Serializable {
 
     @Column(name = "password", nullable = false, length = 255)
     private String password;
-
-    @Column(name = "role", nullable = false)
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private UserRole role;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

@@ -1,28 +1,22 @@
-CREATE TYPE gender AS ENUM (
+CREATE TYPE gender_enum AS ENUM (
     'MALE',
     'FEMALE',
     'OTHER'
 );
 
-CREATE TYPE user_type AS ENUM (
-    'OWNER',
-    'ADMIN',
-    'USER'
-);
-
-CREATE TYPE user_status AS ENUM (
+CREATE TYPE user_status_enum AS ENUM (
     'NONE',
     'ACTIVE',
     'INACTIVE'
 );
 
 CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
+    user_id BIGSERIAL PRIMARY KEY,
 
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
 
-    gender gender NOT NULL,
+    gender gender_enum NOT NULL,
 
     birthday DATE NOT NULL,
 
@@ -32,8 +26,7 @@ CREATE TABLE users (
 
     password VARCHAR(255) NOT NULL,
 
-    type user_type NOT NULL,
-    status user_status NOT NULL,
+    status user_status_enum NOT NULL,
 
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

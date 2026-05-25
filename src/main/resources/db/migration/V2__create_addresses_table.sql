@@ -1,6 +1,6 @@
 CREATE TABLE addresses (
 
-    id BIGSERIAL PRIMARY KEY,
+    address_id BIGSERIAL PRIMARY KEY,
 
     apartment_number VARCHAR(255),
     floor VARCHAR(255),
@@ -12,7 +12,7 @@ CREATE TABLE addresses (
     city VARCHAR(255),
     country VARCHAR(255),
 
-    address_type VARCHAR(255),
+    address_type VARCHAR(100),
 
     user_id BIGINT NOT NULL,
 
@@ -21,7 +21,7 @@ CREATE TABLE addresses (
 
     CONSTRAINT fk_addresses_user
         FOREIGN KEY (user_id)
-        REFERENCES users(id)
+        REFERENCES users(user_id)
         ON DELETE CASCADE
 );
 

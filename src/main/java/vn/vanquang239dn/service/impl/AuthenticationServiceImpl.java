@@ -47,6 +47,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
                 try {
 
+                        log.info("Login username={}", signInRequest.getUsername());
+
                         // Authenticate username and password
                         Authentication authentication = authenticationManager.authenticate(
                                         new UsernamePasswordAuthenticationToken(signInRequest.getUsername(),

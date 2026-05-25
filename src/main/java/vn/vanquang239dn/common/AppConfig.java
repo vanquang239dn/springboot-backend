@@ -4,11 +4,13 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -29,15 +31,21 @@ import vn.vanquang239dn.service.impl.CustomUserDetailsService;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class AppConfig {
 
-    // Spring web security configuration
-    public static final String[] WHITELIST = {
+    // Spring web end point white list
+    public static final String[] ENDPOINT_WHITELIST = {
             "/actuator/**",
             "/v3/**",
             "/webjars/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html"
+            "/swagger-ui/**"
+    };
+
+    // Spring web authenticate while list
+    public static final String[] AUTH_WHITELIST = {
+            "/auth/access-token",
+            "/auth/refresh-token"
     };
 
     private final CustomizeRequestFilter customizeRequestFilter;
@@ -46,14 +54,13 @@ public class AppConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
+        http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers(WHITELIST).permitAll()
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(ENDPOINT_WHITELIST).permitAll()
+                        .requestMatchers(HttpMethod.POST, AUTH_WHITELIST).permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
@@ -69,7 +76,7 @@ public class AppConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

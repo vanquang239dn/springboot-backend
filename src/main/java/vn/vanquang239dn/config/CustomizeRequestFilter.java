@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -32,12 +33,12 @@ import vn.vanquang239dn.service.impl.CustomUserDetailsService;
 import vn.vanquang239dn.service.impl.JwtServiceImpl;
 
 @Component
-@Slf4j(topic = "CUSTOMIZE-REQUEST-FILTER")
+@Slf4j(topic = "CUSTOMIZE-FILTER")
 @RequiredArgsConstructor
 public class CustomizeRequestFilter extends OncePerRequestFilter {
 
     private final JwtServiceImpl jwtService;
-    private final CustomUserDetailsService customerUserDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -49,22 +50,34 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
-            // Get access token from header
-            String accessToken = authHeader.substring(7);
-
-            // Parse jwt claim
-            Claims claims = jwtService.extractAllClaims(accessToken, TokenType.REFRESH_TOKEN);
-
-            // Get user name from claims
-            String userName = claims.get("userName", String.class);
-
             try {
+
+                // Get access token from header
+                String accessToken = authHeader.substring(7);
+
+                // Parse jwt claim
+                Claims claims = jwtService.extractAllClaims(accessToken, TokenType.ACCESS_TOKEN);
+
+                // Get user name from claims
+                String username = claims.get("username", String.class);
+
+                // Check username
+                if (username == null || username.isBlank()) {
+                    writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Invalid token", null);
+                    return;
+                }
+
                 // avoid re-authentication
-                if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                     // Verify user by username
-                    CustomUserPrincipal userPrincipal = customerUserDetailsService
-                            .loadUserByUsername(userName);
+                    CustomUserPrincipal userPrincipal = customUserDetailsService.loadUserByUsername(username);
+
+                    // Check user is enabled
+                    if (!userPrincipal.isEnabled()) {
+                        writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "User inactive", null);
+                        return;
+                    }
 
                     // Create an empty context
                     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -77,6 +90,7 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
                     securityContext.setAuthentication(authenticationToken);
                     SecurityContextHolder.setContext(securityContext);
                 }
+
             } catch (ExpiredJwtException e) {
                 writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Token expired", null);
                 return;
@@ -87,6 +101,10 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
 
             } catch (JwtException e) {
                 writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Invalid token", null);
+                return;
+
+            } catch (UsernameNotFoundException e) {
+                writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "User not found", null);
                 return;
             }
         }
@@ -108,7 +126,7 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
 
         response.resetBuffer();
 
-        response.setStatus(status.value());
+        response.setStatus(HttpStatus.OK.value());
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 

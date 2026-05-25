@@ -31,8 +31,8 @@ public class AddressEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", unique = true, nullable = false)
-    private Long id;
+    @Column(name = "address_id", unique = true, nullable = false)
+    private Long addressId;
 
     @Column(name = "apartment_number", length = 255)
     private String apartmentNumber;
@@ -55,7 +55,7 @@ public class AddressEntity implements Serializable {
     @Column(name = "country", length = 255)
     private String country;
 
-    @Column(name = "address_type", length = 255)
+    @Column(name = "address_type", length = 100)
     private String addressType;
 
     @Column(name = "user_id", nullable = false)

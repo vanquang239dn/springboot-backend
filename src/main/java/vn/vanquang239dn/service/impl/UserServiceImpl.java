@@ -108,7 +108,7 @@ public class UserServiceImpl implements UserService {
                 .totalPages(userEntities.getTotalPages())
                 .listUserResponse(userEntities.getContent().stream()
                         .map(userEntity -> UserResponse.builder()
-                                .id(userEntity.getId())
+                                .id(userEntity.getUserId())
                                 .lastName(userEntity.getLastName())
                                 .firstName(userEntity.getFirstName())
                                 .gender(userEntity.getGender())
@@ -123,13 +123,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse findById(Long userId) {
+
         // Implement logic to fetch a user by ID from the database
         log.info("Fetching user details for ID={}", userId);
 
         UserEntity userEntity = getUserEntityById(userId);
 
         return UserResponse.builder()
-                .id(userEntity.getId())
+                .id(userEntity.getUserId())
                 .lastName(userEntity.getLastName())
                 .firstName(userEntity.getFirstName())
                 .gender(userEntity.getGender())
@@ -142,13 +143,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse findByUsername(String username) {
-        // Implement logic to fetch a user by username from the database
+        // TODO: implement logic to fetch a user by username from the database
         return null;
     }
 
     @Override
     public UserResponse findByEmail(String email) {
-        // Implement logic to fetch a user by email from the database
+        // TODO: Implement logic to fetch a user by email from the database
         return null;
     }
 
@@ -167,15 +168,14 @@ public class UserServiceImpl implements UserService {
                 .email(req.getEmail())
                 .phone(req.getPhone())
                 .username(req.getUsername())
-                .password(passwordEncoder.encode("123456"))
-                .role(req.getRole())
+                .password(passwordEncoder.encode(req.getPassword()))
                 .status(UserStatus.NONE)
                 .build();
 
-        // Save user
+        // Save new user
         userRepository.save(userEntity);
 
-        if (userEntity.getId() != null) {
+        if (userEntity.getUserId() != null) {
             List<AddressEntity> addresses = req.getAddresses().stream()
                     .map(addressReq -> {
                         AddressEntity addressEntity = AddressEntity.builder()
@@ -187,21 +187,23 @@ public class UserServiceImpl implements UserService {
                                 .city(addressReq.getCity())
                                 .country(addressReq.getCountry())
                                 .addressType(addressReq.getAddressType())
-                                .userId(userEntity.getId())
+                                .userId(userEntity.getUserId())
                                 .build();
 
                         return addressEntity;
                     })
                     .toList();
+
+            // Save new address
             addressRepository.saveAll(addresses);
         } else {
             log.error("Failed to create user with username={}", req.getUsername());
             throw new RuntimeException("Failed to create user");
         }
 
-        log.info("User created with ID={}", userEntity.getId());
+        log.info("User created with ID={}", userEntity.getUserId());
 
-        return userEntity.getId();
+        return userEntity.getUserId();
 
     }
 
@@ -212,7 +214,7 @@ public class UserServiceImpl implements UserService {
         // Implement logic to update an existing user in the database
 
         // Check duplicate email
-        boolean emailExists = userRepository.existsByEmailAndIdNot(req.getEmail(), req.getUserId());
+        boolean emailExists = userRepository.existsByEmailAndUserIdNot(req.getEmail(), req.getUserId());
 
         if (emailExists) {
             throw new DuplicateResourceException("Resource duplicate");
@@ -230,13 +232,14 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(userEntity);
 
-        log.info("User updated with ID={}", userEntity.getId());
+        log.info("User updated with ID={}", userEntity.getUserId());
 
         // Save addresses if provided
         if (req.getAddresses() != null) {
             List<AddressEntity> addresses = req.getAddresses().stream()
                     .map(addressReq -> {
-                        AddressEntity addressEntity = addressRepository.findByUserIdAndAddressType(userEntity.getId(),
+                        AddressEntity addressEntity = addressRepository.findByUserIdAndAddressType(
+                                userEntity.getUserId(),
                                 addressReq.getAddressType());
                         if (addressEntity == null) {
                             AddressEntity newAddressEntity = AddressEntity.builder()
@@ -248,7 +251,7 @@ public class UserServiceImpl implements UserService {
                                     .city(addressReq.getCity())
                                     .country(addressReq.getCountry())
                                     .addressType(addressReq.getAddressType())
-                                    .userId(userEntity.getId())
+                                    .userId(userEntity.getUserId())
                                     .build();
 
                             // Replace address entity
@@ -274,7 +277,7 @@ public class UserServiceImpl implements UserService {
             addressRepository.saveAll(addresses);
         }
 
-        return userEntity.getId();
+        return userEntity.getUserId();
     }
 
     @Override
@@ -293,7 +296,7 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.save(userEntity);
-        log.info("Password updated for user ID={}", userEntity.getId());
+        log.info("Password updated for user ID={}", userEntity.getUserId());
     }
 
     @Override
@@ -309,7 +312,7 @@ public class UserServiceImpl implements UserService {
 
     private UserEntity getUserEntityById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
 }

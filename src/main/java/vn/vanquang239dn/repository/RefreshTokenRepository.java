@@ -21,14 +21,14 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshTokenEntity
     Optional<RefreshTokenEntity> findByJwtId(String jwtId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("""
-            UPDATE RefreshTokenEntity t
-            SET t.revoked      = true,
-                t.revokedAt    = :revokedAt,
-                t.revokeReason = :reason
-            WHERE t.sessionId  = :sessionId
-              AND t.revoked    = false
-            """)
+    @Query(value = """
+            UPDATE refresh_tokens
+            SET revoked = true,
+                revoked_at = :revokedAt,
+                revoke_reason = :reason
+            WHERE session_id = :sessionId
+              AND revoked = false
+            """, nativeQuery = true)
     int revokeBySessionID(
             @Param("sessionId") String sessionId,
             @Param("revokedAt") Instant revokedAt,

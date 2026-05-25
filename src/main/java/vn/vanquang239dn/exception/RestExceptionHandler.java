@@ -2,9 +2,9 @@ package vn.vanquang239dn.exception;
 
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -18,13 +18,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import vn.vanquang239dn.dto.response.ExceptionResponse;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 
 @RestControllerAdvice
 public class RestExceptionHandler {
 
         // Method Argument Not Valid Exception
         @ExceptionHandler(MethodArgumentNotValidException.class)
-        @ResponseStatus(HttpStatus.BAD_REQUEST)
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "400", description = "Bad Request", content = {
                                         @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
@@ -54,7 +55,6 @@ public class RestExceptionHandler {
 
         // Resource Not Found Exception
         @ExceptionHandler(ResourceNotFoundException.class)
-        @ResponseStatus(HttpStatus.NOT_FOUND)
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "404", description = "Resource not found", content = {
                                         @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
@@ -77,16 +77,15 @@ public class RestExceptionHandler {
 
         // Duplicate Resource Exception
         @ExceptionHandler(DuplicateResourceException.class)
-        @ResponseStatus(HttpStatus.BAD_REQUEST)
         @ApiResponses(value = {
-                        @ApiResponse(responseCode = "400", description = "Duplicate resource", content = {
+                        @ApiResponse(responseCode = "409", description = "Duplicate resource", content = {
                                         @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
-                                                        @ExampleObject(name = "400 Response", summary = "Handle resource duplicate exception", value = """
+                                                        @ExampleObject(name = "409 Response", summary = "Handle duplicate resource exception", value = """
                                                                         {
                                                                           "timestamp": "2026-01-01T17:30:30.123+00:00",
-                                                                          "status": 400,
-                                                                          "path": "api/v1/...",
-                                                                          "message": "Duplicate resource"
+                                                                          "status": 409,
+                                                                          "path": "/user/add",
+                                                                          "message": "Username already exists"
                                                                         }
                                                                         """)
                                         })
@@ -95,37 +94,74 @@ public class RestExceptionHandler {
         public ExceptionResponse handleDuplicateResourceException(DuplicateResourceException e,
                         HttpServletRequest request) {
 
-                return buildExceptionResponse(HttpStatus.CONFLICT, e.getMessage(), e.getMessage(), request);
+                return buildExceptionResponse(HttpStatus.CONFLICT, e.getMessage(), null, request);
         }
 
         // Response Status Exception
         @ExceptionHandler(ResponseStatusException.class)
-        @ResponseStatus(HttpStatus.UNAUTHORIZED)
+        public ResponseEntity<ExceptionResponse> handleResponseStatusException(ResponseStatusException e,
+                        HttpServletRequest request) {
+
+                HttpStatus status = HttpStatus.valueOf(e.getStatusCode().value());
+
+                ExceptionResponse response = buildExceptionResponse(status, e.getReason(), null, request);
+
+                return ResponseEntity.ok(response);
+        }
+
+        // Authorization Denied Exception
+        @ExceptionHandler(AuthorizationDeniedException.class)
         @ApiResponses(value = {
-                        @ApiResponse(responseCode = "401", description = "Response status exception", content = {
+                        @ApiResponse(responseCode = "403", description = "Forbidden", content = {
                                         @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
-                                                        @ExampleObject(name = "401 Response", summary = "Handle authentication exception", value = """
+                                                        @ExampleObject(name = "403 Response", summary = "Handle authorization denied exception", value = """
                                                                         {
                                                                           "timestamp": "2026-01-01T17:30:30.123+00:00",
-                                                                          "status": 401,
-                                                                          "path": "api/v1/...",
-                                                                          "message": "Response status exception"
+                                                                          "status": 403,
+                                                                          "path": "/user/list",
+                                                                          "message": "Access Denied"
                                                                         }
                                                                         """)
                                         })
                         })
         })
-        public ExceptionResponse handleResponseStatusException(ResponseStatusException e,
+        public ExceptionResponse handleAuthorizationDeniedException(AuthorizationDeniedException e,
                         HttpServletRequest request) {
 
-                return buildExceptionResponse(HttpStatus.UNAUTHORIZED, e.getReason(), null, request);
+                return buildExceptionResponse(HttpStatus.FORBIDDEN, e.getMessage(), null, request);
+        }
+
+        // End point Not Found Exception
+        @ExceptionHandler(NoResourceFoundException.class)
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "404", description = "Endpoint not found", content = {
+                                        @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = {
+                                                        @ExampleObject(name = "404 Response", summary = "Handle endpoint not found exception", value = """
+                                                                        {
+                                                                          "timestamp": "2026-01-01T17:30:30.123+00:00",
+                                                                          "status": 404,
+                                                                          "path": "/auth/user-list",
+                                                                          "message": "Endpoint not found",
+                                                                          "details": null
+                                                                        }
+                                                                        """)
+                                        })
+                        })
+        })
+        public ExceptionResponse handleNoResourceFoundException(NoResourceFoundException e,
+                        HttpServletRequest request) {
+
+                return buildExceptionResponse(HttpStatus.NOT_FOUND, "Endpoint not found", null, request);
         }
 
         // Default exception
         @ExceptionHandler(Exception.class)
         public ExceptionResponse handleException(Exception e, HttpServletRequest request) {
-
-                return buildExceptionResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", null, request);
+                return buildExceptionResponse(
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                "Internal server error",
+                                null,
+                                request);
         }
 
         // Builder for exception response

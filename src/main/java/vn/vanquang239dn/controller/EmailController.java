@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import vn.vanquang239dn.dto.request.MailSendingRequest;
 import vn.vanquang239dn.service.impl.EmailServiceImpl;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ public class EmailController {
     private final EmailServiceImpl emailService;
 
     @PostMapping("/send")
+    @PreAuthorize("hasAuthority('MAIL_SEND')")
     public void send(@RequestBody MailSendingRequest emailRequest) throws IOException {
 
         log.info("Sending email to {}", emailRequest.getReceiverEmail());

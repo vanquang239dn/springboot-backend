@@ -34,8 +34,8 @@ public class RefreshTokenEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", unique = false, nullable = false)
-    private UUID id;
+    @Column(name = "refresh_token_id", unique = false, nullable = false)
+    private UUID refreshTokenId;
 
     @Column(name = "user_id", nullable = false, unique = false)
     private Long userId;

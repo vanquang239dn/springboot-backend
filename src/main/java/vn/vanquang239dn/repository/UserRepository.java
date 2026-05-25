@@ -18,7 +18,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     UserEntity findByEmail(String email);
 
-    boolean existsByEmailAndIdNot(String email, long userId);
+    boolean existsByEmailAndUserIdNot(String email, long userId);
 
     @Query("""
                 SELECT u

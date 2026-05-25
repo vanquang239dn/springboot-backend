@@ -9,7 +9,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import vn.vanquang239dn.model.enums.Gender;
-import vn.vanquang239dn.model.enums.UserRole;
 
 @Getter
 @AllArgsConstructor
@@ -30,9 +29,11 @@ public class UserCreationRequest implements Serializable {
 
         private final String phone;
 
+        @NotBlank(message = "User name must be not blank")
         private final String username;
 
-        private final UserRole role;
+        @NotBlank(message = "Password must be not blank")
+        private final String password;
 
         private final List<AddressRequest> addresses;
 
