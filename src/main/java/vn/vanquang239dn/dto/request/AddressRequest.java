@@ -9,7 +9,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class AddressRequest implements Serializable {
 
-        private final String apartmentnumber;
+        private final String apartmentNumber;
 
         private final String floor;
 

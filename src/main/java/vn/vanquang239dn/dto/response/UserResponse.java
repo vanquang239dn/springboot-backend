@@ -15,7 +15,7 @@ import vn.vanquang239dn.model.enums.Gender;
 @AllArgsConstructor
 public class UserResponse implements Serializable {
 
-        private long id;
+        private long userId;
 
         private String firstName;
 

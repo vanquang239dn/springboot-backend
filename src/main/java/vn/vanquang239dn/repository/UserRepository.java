@@ -21,16 +21,15 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     boolean existsByEmailAndUserIdNot(String email, long userId);
 
     @Query("""
-                SELECT u
-                FROM UserEntity u
-                WHERE u.status = 'NONE'
-                    AND (
-                        lower(u.firstName) LIKE lower(concat('%', :keyword, '%'))
-                     OR lower(u.lastName)  LIKE lower(concat('%', :keyword, '%'))
-                     OR lower(u.email)     LIKE lower(concat('%', :keyword, '%'))
-                     OR lower(u.phone)     LIKE lower(concat('%', :keyword, '%'))
-                    )
+            SELECT u
+            FROM UserEntity u
+            WHERE u.status = 'NONE'
+              AND (
+                    LOWER(u.firstName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                 OR LOWER(u.lastName)  LIKE LOWER(CONCAT('%', :keyword, '%'))
+                 OR LOWER(u.email)     LIKE LOWER(CONCAT('%', :keyword, '%'))
+                 OR LOWER(u.phone)     LIKE LOWER(CONCAT('%', :keyword, '%'))
+              )
             """)
     Page<UserEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
-
 }

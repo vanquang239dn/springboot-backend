@@ -35,7 +35,7 @@ import vn.vanquang239dn.service.impl.CustomUserDetailsService;
 public class AppConfig {
 
     // Spring web end point white list
-    public static final String[] ENDPOINT_WHITELIST = {
+    protected static final String[] ENDPOINT_WHITELIST = {
             "/actuator/**",
             "/v3/**",
             "/webjars/**",
@@ -43,7 +43,7 @@ public class AppConfig {
     };
 
     // Spring web authenticate while list
-    public static final String[] AUTH_WHITELIST = {
+    protected static final String[] AUTH_WHITELIST = {
             "/auth/access-token",
             "/auth/refresh-token"
     };

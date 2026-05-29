@@ -20,6 +20,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.SignatureException;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,77 +42,124 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
     private final JwtServiceImpl jwtService;
     private final CustomUserDetailsService customUserDetailsService;
     private final ObjectMapper objectMapper;
+    private static final String TRACE_ID_HEADER = "X-Trace-Id";
+    private final Tracer tracer;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        log.info("{} {} ", request.getMethod(), request.getRequestURI());
 
+        // Get current span
+        Span currentSpan = tracer.currentSpan();
+
+        // When span is not null
+        if (currentSpan != null) {
+            response.setHeader(TRACE_ID_HEADER, currentSpan.context().traceId());
+        }
+
+        try {
+
+            log.info("{} {} ", request.getMethod(), request.getRequestURI());
+
+            // Get access token from request
+            String accessToken = extractBearerToken(request);
+
+            if (accessToken == null) {
+
+                // If access token is null do filter chain
+                filterChain.doFilter(request, response);
+                return;
+            } else {
+                // If access token is not null, authenticate user
+                // If authenticate failed, return
+                if (!authenticateRequest(accessToken, request, response)) {
+                    return;
+                }
+            }
+
+            // If authenticate successfully, do filter chain
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException e) {
+            writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Token expired", null);
+
+        } catch (SignatureException e) {
+            writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Invalid token signature", null);
+
+        } catch (JwtException e) {
+            writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Invalid token", null);
+
+        } catch (UsernameNotFoundException e) {
+            writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "User not found", null);
+
+        }
+
+    }
+
+    private String extractBearerToken(HttpServletRequest request) {
+
+        // Get authorization header from request
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
-            try {
+            // Return access token
+            return authHeader.substring(7);
 
-                // Get access token from header
-                String accessToken = authHeader.substring(7);
+        } else {
 
-                // Parse jwt claim
-                Claims claims = jwtService.extractAllClaims(accessToken, TokenType.ACCESS_TOKEN);
+            // Return null if cant get access token
+            return null;
+        }
+    }
 
-                // Get user name from claims
-                String username = claims.get("username", String.class);
+    private boolean authenticateRequest(String accessToken, HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
 
-                // Check username
-                if (username == null || username.isBlank()) {
-                    writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Invalid token", null);
-                    return;
-                }
-
-                // avoid re-authentication
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-                    // Verify user by username
-                    CustomUserPrincipal userPrincipal = customUserDetailsService.loadUserByUsername(username);
-
-                    // Check user is enabled
-                    if (!userPrincipal.isEnabled()) {
-                        writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "User inactive", null);
-                        return;
-                    }
-
-                    // Create an empty context
-                    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-
-                    // Authenticate user
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                            userPrincipal, null, userPrincipal.getAuthorities());
-
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    securityContext.setAuthentication(authenticationToken);
-                    SecurityContextHolder.setContext(securityContext);
-                }
-
-            } catch (ExpiredJwtException e) {
-                writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Token expired", null);
-                return;
-
-            } catch (SignatureException e) {
-                writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Invalid token signature", null);
-                return;
-
-            } catch (JwtException e) {
-                writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Invalid token", null);
-                return;
-
-            } catch (UsernameNotFoundException e) {
-                writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "User not found", null);
-                return;
-            }
+        // avoid re-authentication
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            return true;
         }
 
-        filterChain.doFilter(request, response);
+        // Parse jwt claim
+        Claims claims = jwtService.extractAllClaims(accessToken, TokenType.ACCESS_TOKEN);
 
+        // Get user name from claims
+        String username = claims.get("username", String.class);
+
+        // Check username
+        if (username == null || username.isBlank()) {
+            writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "Invalid token", null);
+            return false;
+        }
+
+        // Verify user by username
+        CustomUserPrincipal userPrincipal = customUserDetailsService.loadUserByUsername(username);
+
+        // Check user is enabled
+        if (!userPrincipal.isEnabled()) {
+            writeErrorResponse(request, response, HttpStatus.UNAUTHORIZED, "User inactive", null);
+            return false;
+        }
+
+        setAuthentication(request, userPrincipal);
+
+        return true;
+    }
+
+    private void setAuthentication(HttpServletRequest request, CustomUserPrincipal userPrincipal) {
+
+        // Create an empty context
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+
+        // Authenticate user
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                userPrincipal, null, userPrincipal.getAuthorities());
+
+        // Set authentication token into security context holder
+        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        securityContext.setAuthentication(authenticationToken);
+        SecurityContextHolder.setContext(securityContext);
     }
 
     private void writeErrorResponse(HttpServletRequest request, HttpServletResponse response, HttpStatus status,

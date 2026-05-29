@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
 
     // Define allowed sort fields for validation
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
-            "id",
+            "userId",
             "firstName",
             "lastName",
             "email",
@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
         log.info("Fetching user list with keyword={}, sortBy={}, page={}, size={}", keyword, sortBy, page, size);
 
         // Default sort
-        Sort.Order sortOrder = new Sort.Order(Sort.Direction.ASC, "id");
+        Sort.Order sortOrder = new Sort.Order(Sort.Direction.ASC, "userId");
 
         // Handle sort
         if (StringUtils.hasLength(sortBy)) {
@@ -108,7 +108,7 @@ public class UserServiceImpl implements UserService {
                 .totalPages(userEntities.getTotalPages())
                 .listUserResponse(userEntities.getContent().stream()
                         .map(userEntity -> UserResponse.builder()
-                                .id(userEntity.getUserId())
+                                .userId(userEntity.getUserId())
                                 .lastName(userEntity.getLastName())
                                 .firstName(userEntity.getFirstName())
                                 .gender(userEntity.getGender())
@@ -117,7 +117,7 @@ public class UserServiceImpl implements UserService {
                                 .phone(userEntity.getPhone())
                                 .username(userEntity.getUsername())
                                 .build())
-                        .collect(Collectors.toList()))
+                        .toList())
                 .build();
     }
 
@@ -130,7 +130,7 @@ public class UserServiceImpl implements UserService {
         UserEntity userEntity = getUserEntityById(userId);
 
         return UserResponse.builder()
-                .id(userEntity.getUserId())
+                .userId(userEntity.getUserId())
                 .lastName(userEntity.getLastName())
                 .firstName(userEntity.getFirstName())
                 .gender(userEntity.getGender())
@@ -177,21 +177,17 @@ public class UserServiceImpl implements UserService {
 
         if (userEntity.getUserId() != null) {
             List<AddressEntity> addresses = req.getAddresses().stream()
-                    .map(addressReq -> {
-                        AddressEntity addressEntity = AddressEntity.builder()
-                                .apartmentNumber(addressReq.getApartmentNumber())
-                                .floor(addressReq.getFloor())
-                                .building(addressReq.getBuilding())
-                                .streetNumber(addressReq.getStreetNumber())
-                                .street(addressReq.getStreet())
-                                .city(addressReq.getCity())
-                                .country(addressReq.getCountry())
-                                .addressType(addressReq.getAddressType())
-                                .userId(userEntity.getUserId())
-                                .build();
-
-                        return addressEntity;
-                    })
+                    .map(addressReq -> AddressEntity.builder()
+                            .apartmentNumber(addressReq.getApartmentNumber())
+                            .floor(addressReq.getFloor())
+                            .building(addressReq.getBuilding())
+                            .streetNumber(addressReq.getStreetNumber())
+                            .street(addressReq.getStreet())
+                            .city(addressReq.getCity())
+                            .country(addressReq.getCountry())
+                            .addressType(addressReq.getAddressType())
+                            .userId(userEntity.getUserId())
+                            .build())
                     .toList();
 
             // Save new address
