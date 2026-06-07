@@ -46,14 +46,22 @@ pipeline{
                 }
             }
         }
-        stage("Build image with Jib") {
+        stage("Build and Push image with Jib") {
             steps {
-                script {
-                    if (isUnix()) {
-                        sh "./mvnw clean package jib:build -DskipTests"
-                    } else {
-                        bat "mvnw.cmd clean package jib:build -DskipTests"
-                    }
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credential',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    bat """
+                        mvnw.cmd clean package jib:build ^
+                            -DskipTests ^
+                            -Djib.to.image=docker.io/%DOCKER_USERNAME%/backend-service:latest ^
+                            -Djib.to.auth.username=%DOCKER_USERNAME% ^
+                            -Djib.to.auth.password=%DOCKER_PASSWORD%
+                        """
                 }
             }
         }
