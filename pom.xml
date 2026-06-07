@@ -19,7 +19,6 @@
 	<properties>
 		<java.version>21</java.version>
 		<image.repository>docker.io/vanquang239dnn/backend-service</image.repository>
-		<image.tag>${project.version}</image.tag>
 	</properties>
 
 	<dependencies>
@@ -232,7 +231,7 @@
 						<image>eclipse-temurin:21-jre</image>
 					</from>
 					<to>
-						<image>${image.repository}:${image.tag}</image>
+						<image>${image.repository}</image>
 					</to>
 					<container>
 						<ports>
