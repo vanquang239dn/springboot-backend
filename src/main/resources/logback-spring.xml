@@ -3,7 +3,7 @@
 
     <springProfile name="dev">
         <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-            <destination>${LOGSTASH_DOCKER_HOST:-localhost:5600}</destination>
+            <destination>${LOGSTASH_HOST:-localhost:5600}</destination>
             <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
                 <providers>
                     <timestamp/>
