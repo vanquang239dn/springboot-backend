@@ -1,9 +1,9 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
-    <springProfile name="docker">
+    <springProfile name="dev">
         <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-            <destination>${LOGSTASH_HOST:-logstash:5600}</destination>
+            <destination>${LOGSTASH_DOCKER_HOST:-localhost:5600}</destination>
             <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
                 <providers>
                     <timestamp/>
@@ -32,9 +32,4 @@
         </root>
     </springProfile>
 
-    <springProfile name="!docker">
-        <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
-        </root>
-    </springProfile>
 </configuration>

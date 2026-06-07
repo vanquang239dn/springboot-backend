@@ -11,15 +11,19 @@ management:
     endpoints:
         web:
             exposure:
-                include: health, info
+                include: health, info, prometheus
 
     tracing:
         sampling:
             probability: 1.0
 
+    endpoint:
+        health:
+            show-details: never
+
     zipkin:
         tracing:
-            endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+            endpoint: ${ZIPKIN_HOST:http://localhost:9411}/api/v2/spans
 
 logging:
     level:
