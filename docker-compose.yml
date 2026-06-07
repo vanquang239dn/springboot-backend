@@ -54,7 +54,7 @@ services:
     container_name: logstash
     restart: unless-stopped
     expose:
-      - "5000"
+      - "5600"
       - "9600"
     volumes:
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
