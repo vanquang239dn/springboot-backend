@@ -5,11 +5,6 @@ pipeline{
         maven "MAVEN"
     }
 
-    environment{
-        APP_NAME = 'backend-service'
-        IMAGE_TAG = 'latest'
-    }
-
     stages{
         stage("Clean workspace"){
             steps{
@@ -37,35 +32,47 @@ pipeline{
                     string(credentialsId: 'backend-prod-JWT_REFRESH_SECRET_KEY', variable: 'JWT_REFRESH_SECRET_KEY')
                 ]){
                     script {
-                        if (isUnix()) {
-                            sh "./mvnw test -Dspring.profiles.active=dev"
-                        } else {
-                            bat "mvnw.cmd test -Dspring.profiles.active=dev"
-                        }
+                        bat "mvnw.cmd test -Dspring.profiles.active=dev"
                     }
                 }
             }
         }
+
+        stage("Prepare image tag") {
+            steps {
+                script {
+                        env.IMAGE_TAG = bat(
+                        script: "@git rev-parse --short=7 HEAD",
+                        returnStdout: true
+                        ).trim()
+
+                        echo "IMAGE_TAG = ${env.IMAGE_TAG}"
+                }
+            }
+        }
+
         stage("Build and Push image with Jib") {
             steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'dockerhub-credential',
+                        credentialsId: 'Dockerhub-credential',
                         usernameVariable: 'DOCKER_USERNAME',
                         passwordVariable: 'DOCKER_PASSWORD'
                     )
                 ]) {
-                    bat """
-                        mvnw.cmd clean package jib:build ^
-                            -DskipTests ^
-                            -Djib.to.image=docker.io/%DOCKER_USERNAME%/backend-service:latest ^
-                            -Djib.to.auth.username=%DOCKER_USERNAME% ^
-                            -Djib.to.auth.password=%DOCKER_PASSWORD%
+                    script {
+                        bat """
+                            mvnw.cmd clean package jib:build ^
+                                -DskipTests ^
+                                -Dimage.tag=%IMAGE_TAG% ^
+                                -Djib.to.auth.username=%DOCKER_USERNAME% ^
+                                -Djib.to.auth.password=%DOCKER_PASSWORD%
                         """
+                    }
                 }
             }
         }
-        stage("Build Dockerfile with Compose") {
+        stage("Build Dockerfile with compose") {
             steps {
                 withCredentials([
                     string(credentialsId: 'backend-prod-ZIPKIN_HOST', variable: 'ZIPKIN_HOST'),
@@ -85,11 +92,10 @@ pipeline{
                     string(credentialsId: 'backend-prod-GRAFANA_PORT', variable: 'GRAFANA_PORT')
                 ]){
                     script {
-                        if (isUnix()) {
-                            sh "docker compose up -d"
-                        } else {
-                            bat "docker compose up -d"
-                        }
+                        bat """
+                            docker compose pull
+                            docker compose up -d
+                        """
                     }
                 }
             }
